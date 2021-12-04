@@ -3,6 +3,8 @@ Loris crawler assignment
 
 Create a Pages directory in the root directory
 
+run yarn install
+
 from the root directory run command 
 
 yarn url depth
