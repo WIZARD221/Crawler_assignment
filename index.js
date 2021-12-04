@@ -39,13 +39,7 @@ const isSameDomain = (fullLink, hrefAttr) => {
 }
 
 const calculateRatio = (link, links) => {
-    const sameDomain = []
-
-    for (const currLink of links){
-        if(isSameDomain(link, currLink)){
-            sameDomain.push(currLink)
-        }
-    }
+    const sameDomain = links.filter(currLink => isSameDomain(link,currLink))
     return sameDomain.length / links.length
 }
 
