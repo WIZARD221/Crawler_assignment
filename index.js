@@ -54,6 +54,7 @@ const CrawlLink = async (link) =>{
     const response = await axios.get(link);
     if(!UrlValidator(response, CONTENT_TYPES.TEXT_HTML)){
         console.log(`Loris web crawler doesn't accept ${response.headers['content-type']} content types`);
+        return null
     }else {
         // console.log(`Content type is valid`);
         SaveSourcePage(link, response);
@@ -105,7 +106,7 @@ await fs.appendFile(outputFileName, content,err => {
         console.error(err)
         return
     }
-    console.log(`Depth ${currDepth}: Output file updated with ${crawledLink.link} data yaie`)}
+    console.log(`Depth ${currDepth}: Output file updated with ${crawledLink.link} data`)}
 )
 
 currDepth = currDepth + 1
@@ -119,15 +120,17 @@ for (let i = currDepth; i <= maxDepth ; i++) {
 
     for (const currLink of children){
         const currCrawledLink = await CrawlLink(currLink)
-        content = `\t${currCrawledLink.link}\t${currDepth}\t${currCrawledLink.ratio}`
-        await fs.appendFile(outputFileName, content,err => {
-            if (err) {
-                console.error(err)
-                return
-            }
-            console.log(`Depth ${currDepth}: Output file updated with ${currCrawledLink.link} data`)}
-        )
-        newChildren.push(...currCrawledLink.children)
+        if (currCrawledLink){
+            content = `\t${currCrawledLink.link}\t${currDepth}\t${currCrawledLink.ratio}`
+            await fs.appendFile(outputFileName, content,err => {
+                if (err) {
+                    console.error(err)
+                    return
+                }
+                console.log(`Depth ${currDepth}: Output file updated with ${currCrawledLink.link} data`)}
+            )
+            newChildren.push(...currCrawledLink.children)
+        }
     }
     children = newChildren
     currDepth = currDepth + 1
