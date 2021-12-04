@@ -5,7 +5,7 @@ import tldts from 'tldts'
 
 import {CONTENT_TYPES, INVALID_FILENAME_CHARS} from './constants.js'
 
-const SaveSourcePage = (url, response) => {
+const saveSourcePage = (url, response) => {
     const filename = url.replace(INVALID_FILENAME_CHARS, '');
 
      fs.writeFileSync(`./Pages/${filename}`, response.data, err => {
@@ -17,13 +17,12 @@ const SaveSourcePage = (url, response) => {
     })
 }
 
-// Can I check the content type with out sending a request?
-const UrlValidator = (response, allowedContentTypes) => {
+const isUrlValid = (response, allowedContentTypes) => {
     const urlContentType = response.headers['content-type'].split(';')[0]
     return allowedContentTypes.includes(urlContentType)
 }
 
-const SameDomain = (fullLink, hrefAttr) => {
+const isSameDomain = (fullLink, hrefAttr) => {
     const domain = tldts.getDomain(fullLink)
     const subDomain = tldts.getSubdomain(fullLink)
 
@@ -39,25 +38,25 @@ const SameDomain = (fullLink, hrefAttr) => {
     }
 }
 
-const RatioCalculator = (link, links) => {
+const calculateRatio = (link, links) => {
     const sameDomain = []
 
     for (const currLink of links){
-        if(SameDomain(link, currLink)){
+        if(isSameDomain(link, currLink)){
             sameDomain.push(currLink)
         }
     }
     return sameDomain.length / links.length
 }
 
-const CrawlLink = async (link) =>{
+const crawlLink = async (link) =>{
     const response = await axios.get(link);
-    if(!UrlValidator(response, CONTENT_TYPES.TEXT_HTML)){
+    if(!isUrlValid(response, CONTENT_TYPES.TEXT_HTML)){
         console.log(`Loris web crawler doesn't accept ${response.headers['content-type']} content types`);
         return null
     }else {
         // console.log(`Content type is valid`);
-        SaveSourcePage(link, response);
+        saveSourcePage(link, response);
 
         const html = response.data;
         const $ = cheerio.load(html);
@@ -72,10 +71,9 @@ const CrawlLink = async (link) =>{
                 }
             });
 
-            const ratio = RatioCalculator(link, links)
+            const ratio = calculateRatio(link, links)
             return {link:link, ratio: ratio, children:links}
         }
-
     }
 }
 
@@ -96,7 +94,7 @@ fs.writeFileSync(`./${outputFileName}`, headers.join("\t"), err => {
 })
 
 
-const crawledLink = await CrawlLink(url);
+const crawledLink = await crawlLink(url);
 let currDepth = 1;
 
 let content = `\t${crawledLink.link}\t${currDepth}\t${crawledLink.ratio}`
@@ -119,7 +117,7 @@ for (let i = currDepth; i <= maxDepth ; i++) {
     let newChildren = []
 
     for (const currLink of children){
-        const currCrawledLink = await CrawlLink(currLink)
+        const currCrawledLink = await crawlLink(currLink)
         if (currCrawledLink){
             content = `\t${currCrawledLink.link}\t${currDepth}\t${currCrawledLink.ratio}`
             await fs.appendFile(outputFileName, content,err => {
