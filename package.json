@@ -1,0 +1,14 @@
+{
+  "name": "Loris",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "cheerio": "^1.0.0-rc.10",
+    "fs": "^0.0.1-security",
+    "tldts": "^5.7.53",
+    "url": "^0.11.0"
+  }
+}
