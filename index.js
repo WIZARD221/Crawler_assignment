@@ -50,30 +50,36 @@ const calculateRatio = (link, links) => {
 }
 
 const crawlLink = async (link) =>{
-    const response = await axios.get(link);
-    if(!isUrlValid(response, CONTENT_TYPES.TEXT_HTML)){
-        console.log(`Loris web crawler doesn't accept ${response.headers['content-type']} content types`);
-        return null
-    }else {
-        // console.log(`Content type is valid`);
-        saveSourcePage(link, response);
+    if(!linkMap[link]){
+        const response = await axios.get(link);
+        if(!isUrlValid(response, CONTENT_TYPES.TEXT_HTML)){
+            console.log(`Loris web crawler doesn't accept ${response.headers['content-type']} content types`);
+            return null
+        }else {
+            // console.log(`Content type is valid`);
+            saveSourcePage(link, response);
 
-        const html = response.data;
-        const $ = cheerio.load(html);
-        const linkObjects = $('a');
+            const html = response.data;
+            const $ = cheerio.load(html);
+            const linkObjects = $('a');
 
-        if (linkObjects.length > 0) {
-            const links = [];
-            linkObjects.each((index, element) => {
-                const hrefAttr = $(element).attr('href')
-                if (hrefAttr) {
-                    links.push(new URL(hrefAttr, link).href);
-                }
-            });
+            if (linkObjects.length > 0) {
+                const links = [];
+                linkObjects.each((index, element) => {
+                    const hrefAttr = $(element).attr('href')
+                    if (hrefAttr) {
+                        links.push(new URL(hrefAttr, link).href);
+                    }
+                });
 
-            const ratio = calculateRatio(link, links)
-            return {link:link, ratio: ratio, children:links}
+                const ratio = calculateRatio(link, links)
+
+                linkMap[link] = {link:link, ratio: ratio, children:links}
+                return {link:link, ratio: ratio, children:links}
+            }
         }
+    }else {
+        return linkMap[link]
     }
 }
 
@@ -81,6 +87,8 @@ console.log("Loris web crawler started running");
 const url = process.argv[2];
 const maxDepth = process.argv[3];
 console.log(`Crawling URL: ${url} in max depth of: ${maxDepth}`)
+
+const linkMap = {}
 
 const outputFileName = 'output.tsv'
 const headers = ['url','depth','ratio']
