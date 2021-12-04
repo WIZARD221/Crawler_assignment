@@ -83,7 +83,7 @@ const url = process.argv[2];
 const maxDepth = process.argv[3];
 console.log(`Crawling URL: ${url} in max depth of: ${maxDepth}`)
 
-const outputFileName = 'output.txt'
+const outputFileName = 'output.tsv'
 const headers = ['url','depth','ratio']
 
 fs.writeFileSync(`./${outputFileName}`, headers.join("\t"), err => {
